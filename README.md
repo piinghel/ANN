@@ -1,2 +1,2 @@
 # ANN
-Project for the course Artificial Neural Networks at KU Leuven
+Project for the course Artificial Neural Networks and Deep Learning at KU Leuven
