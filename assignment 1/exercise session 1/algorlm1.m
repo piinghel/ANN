@@ -14,8 +14,8 @@ x=0:0.025:3*pi; y=sin(x.^2);
 p=con2seq(x); t=con2seq(y); % convert the data to a useful format
 
 % add gaussian noise
-% y_noise=y + randn(size(y))/2;
-% t=con2seq(y_noise);
+y_noise=y + randn(size(y))/10;
+t=con2seq(y_noise);
 
 %creation of networks
 % traingd, traingda, traincgf, traincgp, trainbfg, trainlm
