@@ -1,59 +1,61 @@
-
 #' 
 #' 
 #' @param data: A tsibble
-#' @param x: 
-#' @param y: 
+#' @param central_measure: default median
+#' @param var_list: 
+#' @param x_lab_list: 
+#' @param y_lab_list: 
+#' @param trans_list: 
 #' @param fill: 
+#' @param title_legend_list: 
 #' @param THEME: 
 #' @param LEGEND: 
-#' 
+#' @param palette
 #' @return 
 
-make_boxplot <- function(data = NULL,
-                         x = NULL,
-                         y = NULL,
-                         fill = NULL, 
-                         THEME = theme_minimal(), 
-                         LEGEND = theme(legend.title=element_blank())){
+make_boxplot <-function(
+  data = NULL, 
+  central_measure=median,
+  var_list=list("time","epochs","rmse"),
+  x_lab_list = list("","",""),
+  y_lab_list = list("Time (s)","Epochs","Root Mean Squared Error"),
+  trans_list = list("pseudo_log","pseudo_log","pseudo_log"),
+  fill = "std_noise",
+  title_legend_list = list("Added noise",NULL,NULL),
+  THEME = theme_minimal(),
+  PALETTE = "Dark2"){
   
   
-  p_time <- ggplot(data = data, aes(x=!!sym(x), 
-    y=!!sym(y[[1]]),fill = as.factor(!!sym(fill)))) + 
-    geom_boxplot() + scale_y_continuous(trans='log10') + 
-    THEME + labs(fill = "Added noise") + 
-    scale_fill_brewer(palette="Dark2") + 
-    labs(x = "", y = "Time (s)") 
+  for (j in 1:length(var_list)){
+    # legend or no legend
+    if (is.null(title_legend_list[[j]])){
+      LEGEND <- theme(legend.position = "none")
+    }
+    else{
+      LEGEND <- labs(fill = title_legend_list[[j]])
+    }
+    
+    
+    # make figure
+    p <- ggplot(df, aes(x=train_algo, y = !!dplyr::sym(var_list[[j]]),
+      fill = as.factor(!!sym(fill)))) + 
+      geom_boxplot() + 
+      scale_y_continuous(trans=trans_list[[j]]) + THEME +
+      LEGEND +
+      scale_fill_brewer(palette=PALETTE) + 
+      labs(x = x_lab_list[[j]], y = y_lab_list[[j]]) 
+    
+    # first figure
+    if (j==1){
+      fig <- p  }
+    # add other figures
+    if (j>1){
+      fig <- (fig/p)
+    }
+  }
   
-  
-  p_epochs <- ggplot(data = data, aes(x=!!sym(x), y=!!sym(y[[2]]),
-    fill = as.factor(!!sym(fill)))) + 
-    geom_boxplot() + scale_y_continuous(trans='log10') + THEME +
-    theme(legend.position = "none")  +
-    scale_fill_brewer(palette="Dark2") + 
-    labs(x = "", y= "Epochs") 
-  
-  p_rmse <- ggplot(data = data, aes(x=!!sym(x), y=!!sym(y[[3]]),
-    fill = as.factor(!!sym(fill)))) + 
-    geom_boxplot(outlier.shape=NA) + 
-    scale_y_continuous(trans='log10') + THEME +
-    theme(legend.position = "none")  +
-    scale_fill_brewer(palette="Dark2") + 
-    labs(x = "Training Algorithm", y = "RMSE") 
-  
-  
-  # group figure
-  return((p_time/p_epochs/p_rmse))
-  
-
+  # return figure
+  return(fig)
 }
-
-
-
-
-
-
-
-
 
 

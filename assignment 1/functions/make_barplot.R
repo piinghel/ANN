@@ -3,61 +3,65 @@
 #' @param data: A tsibble
 #' @param central_measure: default median 
 #' @param var_list: 
-#' @param y_lab: 
-#' @param trans: 
+#' @param x_lab_list: 
+#' @param y_lab_list: 
+#' @param trans_list: 
 #' @param fill: 
-#' @param title_legend: 
+#' @param title_legend_list: 
 #' @param THEME: 
 #' @param LEGEND: 
+#' @param palette
 #' @return 
 
-make_barplot <-function(data, 
-                        central_measure=median, 
-                        var_list=list("time","epochs","rmse"),
-                        y_lab = list("Time (s)","Epochs","Root Mean Squared Error"),
-                        trans = list("pseudo_log","pseudo_log","pseudo_log"),
-                        fill = "std_noise",
-                        title_legend = "Added noise",
-                        THEME = theme_minimal(), 
-                        LEGEND = theme(legend.title=element_blank())){
+make_barplot <-function(
+  data = NULL, 
+  central_measure=median, 
+  var_list=list("time","epochs","rmse"),
+  x_lab_list = list("","",""),
+  y_lab_list = list("Time (s)","Epochs","Root Mean Squared Error"),
+  trans_list = list("pseudo_log","pseudo_log","pseudo_log"),
+  fill = "std_noise",
+  title_legend_list = list("Added noise",NULL,NULL),
+  THEME = theme_minimal(),
+  PALETTE = "Dark2"){
+
   
-  df <- df %>% dplyr::group_by(!!sym(fill), train_algo) %>%
-    summarise(
-      # time
-      central_measure_var1 = central_measure(!!sym(var_list[[1]])),
-      
-      # epochs
-      central_measure_var2 = central_measure(!!sym(var_list[[2]])),
-      
-      # mse
-      central_measure_var3 = central_measure(!!sym(var_list[[3]]))
-      
-    )
+  for (j in 1:length(var_list)){
+    # legend or no legend
+    if (is.null(title_legend_list[[j]])){
+      LEGEND <- theme(legend.position = "none")
+    }
+    else{
+      LEGEND <- labs(fill = title_legend_list[[j]])
+    }
+    
+    # summarize data
+    p <- df %>% dplyr::group_by(!!sym(fill), train_algo) %>%
+         dplyr::summarise(
+         central_measure_var = central_measure(!!dplyr::sym(var_list[[j]]))
+         ) %>%
+         # make figure
+         ggplot(., aes(x=train_algo, y = central_measure_var,
+          fill = as.factor(!!dplyr::sym(fill)))) + 
+          geom_bar(stat="identity", color="black", position=position_dodge()) + 
+          scale_y_continuous(trans=trans_list[[j]]) + THEME +
+          LEGEND +
+          scale_fill_brewer(palette=PALETTE) + 
+          labs(x = x_lab_list[[j]], y = y_lab_list[[j]]) 
+    
+    # first figure
+    if (j==1){
+    fig <- p  }
+    # add other figures
+    if (j>1){
+    fig <- (fig/p)
+    }
+  }
   
-  # var 1
-  p_var1 <- ggplot(df, aes(x=train_algo, y=central_measure_var1,fill = as.factor(!!sym(fill)))) + 
-    geom_bar(stat="identity", color="black", position=position_dodge()) + 
-    scale_y_continuous(trans=trans[[1]]) + 
-    THEME + labs(fill = title_legend)  +
-    scale_fill_brewer(palette="Dark2") + 
-    labs(x = "", y = y_lab[[1]]) 
-  # var 2
-  p_var2 <- ggplot(df, aes(x=train_algo, y=central_measure_var2,fill = as.factor(!!sym(fill)))) + 
-    geom_bar(stat="identity", color="black", position=position_dodge()) + 
-    THEME + theme(legend.position = "none")  +
-    scale_y_continuous(trans=trans[[2]]) + 
-    scale_fill_brewer(palette="Dark2") + 
-    labs(x = "", y = y_lab[[2]]) 
-  # var 3
-  p_var3 <- ggplot(df, aes(x=train_algo, y=central_measure_var3,fill = as.factor(!!sym(fill)))) + 
-    geom_bar(stat="identity", color="black", position=position_dodge()) + 
-    THEME + theme(legend.position = "none") +
-    scale_fill_brewer(palette="Dark2") +
-    scale_y_continuous(trans=trans[[3]]) + 
-    labs(x = "Training Algorithm", y = y_lab[[3]]) 
-  
-  
-  # overview plot
-  return((p_var1/p_var2/p_var3))
-  
+  # return figure
+  return(fig)
 }
+  
+  
+  
+ 

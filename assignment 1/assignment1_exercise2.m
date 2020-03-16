@@ -9,7 +9,7 @@ counter = 1;
 
 for step=steps
     x=0:step:3*pi;
-    y=sin(x);
+    y=sin(x.^2);
     for stdev=stdevs
         ynoisy = y + stdev*randn(size(x));
 

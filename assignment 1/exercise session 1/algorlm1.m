@@ -11,6 +11,7 @@ rng('default');
 
 %generation of examples and targets
 x=0:0.025:3*pi; y=sin(x.^2);
+x=mapminmax(x); y=mapminmax(y);
 p=con2seq(x); t=con2seq(y); % convert the data to a useful format
 
 % add gaussian noise
@@ -19,8 +20,8 @@ t=con2seq(y_noise);
 
 %creation of networks
 % traingd, traingda, traincgf, traincgp, trainbfg, trainlm
-train_algo1='trainbfg';
-train_algo2='trainlm';
+train_algo1='traingd';
+train_algo2='traingd';
 
 net1=feedforwardnet(50,train_algo1); %hiddenSizes 
 %(Row vector of one or more hidden layer sizes (default = 10)

@@ -3,33 +3,60 @@ rm(list=ls())
 library(readxl)
 library(tidyverse)
 library(patchwork)
+library(plyr)
 
 # own plot library
 source("functions/make_boxplot.R")
 source("functions/make_barplot.R")
 
 # choose theme
-THEME <- theme_minimal()
+THEME <- theme_grey()
 # remove legend title
 LEGEND <- theme(legend.title=element_blank())
 
-df <- read_excel("data/tbl_test.xlsx")
+df <- read_excel("data/tbl.xlsx")
 
+
+THEME <- theme_classic()
 
 #--------------------------------
 # BOXPLOT
 #--------------------------------
 
+
+
 # noise
 make_boxplot(
-  data = df, x = 'train_algo',y = list('time','epochs','rmse') ,fill = 'std_noise')
-# hidden neurons
+  data=df, 
+  central_measure=median, 
+  fill="sd",
+  var_list=list("time","rmse_val"),
+  y_lab_list = list("Time (s)","RMSE (validation)"),
+  title_legend_list = list("Added Noise",NULL),
+  THEME = THEME,
+  trans_list  = list("log2","pseudo_log"))
+
+# number of hidden neurons
 make_boxplot(
-  data = df, x = 'train_algo',y = list('time','epochs','rmse') , fill = 'hidden_neurons')
+  data=df, 
+  central_measure=median, 
+  fill="hidden_size",
+  var_list=list("time","rmse_val"),
+  y_lab_list = list("Time (s)","RMSE (validation)"),
+  title_legend_list = list("Added Noise",NULL),
+  THEME = THEME,
+  trans_list  = list("log2","pseudo_log"))
+
 # number of samples
 make_boxplot(
-  data = df, x = 'train_algo',y = list('time','epochs','rmse') , fill = 'num_samples')
-
+  data=df, 
+  central_measure=median, 
+  fill="num_samples",
+  var_list=list("time","rmse_val"),
+  y_lab_list = list("Time (s)","RMSE (validation)"),
+  title_legend_list = list("Added Noise",NULL),
+  THEME = THEME,
+  trans_list  = list("log2","pseudo_log"))
 
 #--------------------------------
 # Barplot
@@ -38,27 +65,58 @@ make_boxplot(
 
 # noise
 make_barplot(
-  data=df, central_measure=median,
-  dispersion=mad, fill="std_noise",
-  var_list=list("time","epochs","rmse"),
-  y_lab = list("Time (s)","Epochs","RMSE"),
-  title_legend = "Added Noise",
-  trans = list("pseudo_log","pseudo_log","pseudo_log"))
+  data=df, 
+  central_measure=median, 
+  fill="sd",
+  var_list=list("time","rmse_val"),
+  y_lab_list = list("Time (s)","RMSE (validation)"),
+  title_legend_list = list("Added Noise",NULL),
+  THEME = THEME,
+  trans_list  = list("pseudo_log","pseudo_log"))
 
 # number of hidden neurons
 make_barplot(
-  data=df, central_measure=median,
-  dispersion=mad, fill="hidden_neurons",
-  var_list=list("time","epochs","rmse"),
-  y_lab = list("Time (s)","Epochs","RMSE"),
-  title_legend = "# Hidden Neurons",
-  trans = list("pseudo_log","pseudo_log","pseudo_log"))
+  data=df, 
+  central_measure=median, 
+  fill="hidden_size",
+  var_list=list("time","rmse_val"),
+  y_lab_list = list("Time (s)","RMSE (validation)"),
+  title_legend_list = list("# hidden neurons",NULL),
+  THEME = THEME,
+  trans_list  = list("pseudo_log","pseudo_log"))
+
 
 # number of samples
 make_barplot(
-  data=df, central_measure=median,
-  dispersion=mad, fill="num_samples",
-  var_list=list("time","epochs","rmse"),
-  y_lab = list("Time (s)","Epochs","RMSE"),
-  title_legend = "# Hidden Neurons",
-  trans = list("pseudo_log","pseudo_log","pseudo_log"))
+  data=df, 
+  central_measure=median, 
+  fill="num_samples",
+  var_list=list("time","rmse_val"),
+  y_lab_list = list("Time (s)","RMSE (validation)"),
+  title_legend_list = list("Added Noise",NULL),
+  THEME = THEME,
+  trans_list  = list("pseudo_log","pseudo_log"))
+
+
+
+# plot last exercise
+
+df$hidden_size <- df %>% select(hidden_size) %>% pull %>% as.factor() %>% 
+  mapvalues(., from = c("20", "50","100"), 
+            to = c("neurons = 20", "neurons = 50", "neurons = 100"))
+
+
+df %>% dplyr::group_by(train_algo,hidden_size,sd) %>%
+  dplyr::summarise(central_measure_var = mean(rmse_val**(1/5))) %>%
+  ggplot(.,aes(x = train_algo, y = central_measure_var, fill = as.factor(sd))) + 
+    geom_bar(stat="identity", color="black", position=position_dodge())+
+    scale_y_continuous(trans = "identity") +
+    facet_grid(hidden_size~.,scales = "free_y") + 
+    labs(x = "Trainng Function", y = "Median RMSE", fill = "Noise") +
+    scale_fill_brewer(palette="Dark2") 
+
+
+
+
+
+
