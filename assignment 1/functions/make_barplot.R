@@ -1,67 +1,76 @@
-#' 
-#' 
-#' @param data: A tsibble
-#' @param central_measure: default median 
-#' @param var_list: 
-#' @param x_lab_list: 
-#' @param y_lab_list: 
-#' @param trans_list: 
-#' @param fill: 
-#' @param title_legend_list: 
-#' @param THEME: 
-#' @param LEGEND: 
+#'
+#'
+#' @param data: Tsibble
+#' @param x: Character
+#' @param central_measure: default median
+#' @param var_list:
+#' @param x_lab_list:
+#' @param y_lab_list:
+#' @param trans_list:
+#' @param fill:
+#' @param title_legend_list:
+#' @param THEME:
+#' @param LEGEND:
 #' @param palette
-#' @return 
+#' @return
 
-make_barplot <-function(
-  data = NULL, 
-  central_measure=median, 
-  var_list=list("time","epochs","rmse"),
-  x_lab_list = list("","",""),
-  y_lab_list = list("Time (s)","Epochs","Root Mean Squared Error"),
-  trans_list = list("pseudo_log","pseudo_log","pseudo_log"),
-  fill = "std_noise",
-  title_legend_list = list("Added noise",NULL,NULL),
-  THEME = theme_minimal(),
-  PALETTE = "Dark2"){
 
-  
-  for (j in 1:length(var_list)){
+
+
+make_barplot <- function(data = NULL,
+                         x = "train_algo",
+                         central_measure = stats::median,
+                         var_list = list("time", "epochs", "rmse"),
+                         x_lab_list = list("", "", ""),
+                         y_lab_list = list("Time (s)", "Epoch", "RMSE"),
+                         trans_list = list("pseudo_log", "pseudo_log", "pseudo_log"),
+                         fill = "std_noise",
+                         title_legend_list = list("Added noise", NULL, NULL),
+                         THEME = theme_gray(),
+                         PALETTE = "Dark2",
+                         LEGEND_POSITION = "top") {
+  for (j in 1:length(var_list)) {
     # legend or no legend
-    if (is.null(title_legend_list[[j]])){
+    if (is.null(title_legend_list[[j]])) {
+      LABS <- labs(fill = "") 
       LEGEND <- theme(legend.position = "none")
     }
     else{
-      LEGEND <- labs(fill = title_legend_list[[j]])
+      LABS <- labs(fill = title_legend_list[[j]]) 
+      LEGEND <- theme(legend.position = LEGEND_POSITION)
     }
     
-    # summarize data
-    p <- df %>% dplyr::group_by(!!sym(fill), train_algo) %>%
-         dplyr::summarise(
-         central_measure_var = central_measure(!!dplyr::sym(var_list[[j]]))
-         ) %>%
-         # make figure
-         ggplot(., aes(x=train_algo, y = central_measure_var,
-          fill = as.factor(!!dplyr::sym(fill)))) + 
-          geom_bar(stat="identity", color="black", position=position_dodge()) + 
-          scale_y_continuous(trans=trans_list[[j]]) + THEME +
-          LEGEND +
-          scale_fill_brewer(palette=PALETTE) + 
-          labs(x = x_lab_list[[j]], y = y_lab_list[[j]]) 
+    df_sum <-
+      data %>% dplyr::group_by(!!dplyr::sym(fill),!!dplyr::sym(x)) %>%
+      dplyr::summarise(# var  e.g. time
+        central_measure = central_measure(!!dplyr::sym(var_list[[j]])))
+    
+    
+    # make figure
+    p <- ggplot(data = df_sum,
+                aes(
+                  x = !!dplyr::sym(x),
+                  y = central_measure,
+                  fill = as.factor(!!dplyr::sym(fill))
+                )) +
+      geom_bar(stat = "identity",
+               color = "black",
+               position = position_dodge()) +
+      THEME + LEGEND + LABS + 
+      scale_fill_brewer(palette = "Dark2") +
+      scale_y_continuous(trans = trans_list[[j]]) +
+      labs(x = x_lab_list[[j]], y = y_lab_list[[j]])
     
     # first figure
-    if (j==1){
-    fig <- p  }
+    if (j == 1) {
+      fig <- p
+    }
     # add other figures
-    if (j>1){
-    fig <- (fig/p)
+    if (j > 1) {
+      fig <- (fig / p)
     }
   }
   
   # return figure
   return(fig)
 }
-  
-  
-  
- 
