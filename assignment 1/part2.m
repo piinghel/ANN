@@ -61,9 +61,11 @@ repeat_count = 10;
 data = cell(size(train_algos, 2) * size(hidden_sizes, 2) * size(transfer_funcs, 2) * ...
             repeat_count, 8);
 counter = 1;
+batch = 1;
 for hidden_size=hidden_sizes
     for train_algo=train_algos
         for transfer_func=transfer_funcs
+            batch = batch + 1;
             for j=1:repeat_count
                 
                 net_train = feedforwardnet(hidden_size, char(train_algo));
@@ -83,7 +85,7 @@ for hidden_size=hidden_sizes
                 time = toc;
                   
                 data{counter, 1} = train_algo;
-                data{counter, 2} = j;
+                data{counter, 2} = batch;
                 data{counter, 3} = hidden_size;               
                 data{counter, 4} = transfer_func;
                 data{counter, 5} = tr.epoch(end);
@@ -106,22 +108,41 @@ tbl = cell2table(data, 'VariableNames', {'train_algos', 'repetition', 'hidden_si
                  'nr_epochs','mse_train', 'mse_val','time'});
 
 writetable(tbl, 'output/part2.xlsx');
-             
+%tbl = readtable('output/part2.xlsx');             
+
+%% todo find best parameters
 
 % train final selected network (with chosen parameters) on train_validation data
-net_final=feedforwardnet(100,'trainlm'); %hiddenSizes 
+net_final=feedforwardnet(50,'traincgf'); %hiddenSizes 
 %(Row vector of one or more hidden layer sizes (default = 10)
 %Row vector of one or more hidden layer sizes (default = 10), Training function
 
 net_final.divideFcn = 'divideind';
 net_final.divideParam.trainInd = train_val_idx;
+net_final.layers{1}.transferFcn = char('tansig');
 
 %training and simulation
-net_final.trainParam.epochs=200;  % set the number of epochs for the training 
+net_final.trainParam.epochs=1000;  % set the number of epochs for the training 
 net_final=train(net_final,train_val_X,train_val_Y);   % train the networks
 % predictions on test data
 pred_test=sim(net_final,test_X);  % simulate the networks with the input vector p
 
+mean((pred_test-test_Y).^2)
+
+B = 10000;
+[bootstat,bootsam] = bootstrp(B,[],test_X');
+bootsam_ = bootsam';
+boot_store = cell(B,1);
+for b=1:B   
+    boot_test_X = test_X(:, bootsam_(b,:));
+    boot_test_y = test_Y(bootsam_(b,:));
+    boot_pred = sim(net_final,boot_test_X);
+    boot_mse = mean((boot_pred - boot_test_y).^2);
+    boot_store{b} = boot_mse;
+    
+end;
+
+hist(cell2mat(boot_store),50);
 
 % visualize performance of chosen model on test data
 % 1) plot surface

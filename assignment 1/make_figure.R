@@ -36,19 +36,19 @@ df1 %>% head()
 # noise
 make_boxplot(
   data = df1,
-  var_list = list('time', 'epoch', 'rmse_val') ,
+  var_list = list('time', 'nr_epoch', 'mse_val') ,
   fill = 'sd'
 )
 # hidden neurons
 make_boxplot(
   data = df1,
-  var_list = list('time', 'epoch', 'rmse_val') ,
+  var_list = list('time', 'nr_epoch', 'mse_val') ,
   fill = 'hidden_size'
 )
 # number of samples
 make_boxplot(
   data = df1,
-  var_list = list('time', 'epoch', 'rmse_val') ,
+  var_list = list('time', 'nr_epoch', 'mse_val') ,
   fill = 'num_samples'
 )
 
@@ -61,7 +61,7 @@ make_boxplot(
 make_barplot(
   data = df1,
   x = "train_algo",
-  var_list = list('time', 'epoch', 'rmse_val') ,
+  var_list = list('time', 'nr_epoch', 'mse_val') ,
   x_lab_list = list("","","Training Algorithm"),
   y_lab_list = list("Time (s)","# Epochs","MSE Validation"),
   fill = 'sd',
@@ -77,7 +77,7 @@ ggsave("output/fig1.png",
 make_barplot(
   data = df1,
   x = "train_algo",
-  var_list = list('time', 'epoch', 'rmse_val') ,
+  var_list = list('time', 'nr_epoch', 'mse_val') ,
   x_lab_list = list("","","Training Algorithm"),
   y_lab_list = list("Time (s)","# Epochs","MSE Validation"),
   fill = 'hidden_size',
@@ -93,7 +93,7 @@ ggsave("output/fig2.png",
 make_barplot(
   data = df1,
   x = "train_algo",
-  var_list = list('time', 'epoch', 'rmse_val') ,
+  var_list = list('time', 'nr_epoch', 'mse_val') ,
   x_lab_list = list("","","Training Algorithm"),
   y_lab_list = list("Time (s)","# Epochs","MSE Validation"),
   fill = 'num_samples',
@@ -163,6 +163,9 @@ ggsave("output/fig6.png",
        units = "cm",
        height = 14,
        width = 11)
+
+
+
 #--------------------------------
 # Part 3
 #--------------------------------
@@ -173,7 +176,7 @@ df1$sd <- as.factor(mapvalues(df1$sd, from = c("0", "0.1", "0.2", "0.3"),
 
 df1 %>% dplyr::group_by(train_algo,sd, hidden_size) %>%
   dplyr::summarise(
-    mse_val = (median(rmse_val))**(1/2)
+    mse_val = (median(mse_val))**(1/2)
   ) %>% ggplot(.,aes(x = train_algo,y = mse_val, fill = as.factor(hidden_size))) +
   geom_bar(stat = "identity",
            color = "black",
