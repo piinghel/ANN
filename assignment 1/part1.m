@@ -10,6 +10,7 @@ train_algos = {'traingd', 'traingda', 'traincgf', 'traincgp', 'trainbfg', 'train
 data = cell(size(steps, 2) * size(sds, 2) * size(hidden_sizes, 2)...
             * k_fold * size(train_algos, 2), 11);
 counter = 1;
+batch = 0;
 %%
 for step=steps
     x = 0:step:3*pi;
@@ -21,6 +22,7 @@ for step=steps
         cvo = cvpartition(y_noise,'kfold',k_fold);
         for hidden_size = hidden_sizes
             for train_algo = train_algos
+                batch = batch +1;
                 for k = 1:cvo.NumTestSets 
                     
                     idx = 1:size(y_noise,2);
@@ -54,7 +56,7 @@ for step=steps
                       
                     % store statistics
                     data{counter,1} = char(train_algo);
-                    data{counter,2} = k; % fold
+                    data{counter,2} = batch; 
                     data{counter,3} = r_tr;
                     data{counter,4} = r_val;
                     data{counter,5} = tr.best_perf; % training performance (mse)

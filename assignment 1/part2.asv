@@ -126,10 +126,10 @@ net_final.trainParam.epochs=1000;  % set the number of epochs for the training
 net_final=train(net_final,train_val_X,train_val_Y);   % train the networks
 % predictions on test data
 pred_test=sim(net_final,test_X);  % simulate the networks with the input vector p
-mse_test = mean((pred_test - test_Y).^2);
+mse_test = mean((pred_test-test_Y).^2);
 
 % bootstrap the mse on the test set
-B = 10000;
+B = 1000;
 [bootstat,bootsam] = bootstrp(B,[],test_X');
 % transpose
 bootsam_ = bootsam';
@@ -146,24 +146,21 @@ for b=1:B
     
 end;
 
-% percentile confidence intrvals
+hist(cell2mat(boot_store),50);
 bootstrap_ci_perc = prctile(cell2mat(boot_store),[5 95],1)
 
 % The'bias-corrected and accelerated' (BCa) confidence interval;
 pred_test = @(x,y) mean((sim(net_final,x')-y').^2);
-bootstrap_ci_bca = bootci(B,pred_test,test_X', test_Y')
-
+bootstrap_ci_bca = bootci(1000,pred_test,test_X', test_Y')
 hist(cell2mat(boot_store),50)
 xlabel("Mean Squared Error")
 title('Samples re-drawn from a single sample')
 hold on
 ylim = get(gca,'YLim');
-h1=plot(bootstrap_ci_perc(1)*[1,1],ylim*1.05,'g-','LineWidth',2);
-plot(bootstrap_ci_perc(2)*[1,1],ylim*1.05,'g-','LineWidth',2);
-h2=plot(bootstrap_ci_bca(1)*[1,1],ylim*1.05,'y-','LineWidth',2);
-plot(bootstrap_ci_bca(2)*[1,1],ylim*1.05,'y-','LineWidth',2);
-legend([h1,h2],{'Percentile','Bca'});
-hold off;
+h1=plot(bootstrapCI(1)*[1,1],ylim*1.05,'g-','LineWidth',2);
+plot(bootstrapCI(2)*[1,1],ylim*1.05,'g-','LineWidth',2);
+plot(mse_test*[1,1],ylim*1.05,'r-','LineWidth',2);
+hold off
 % visualize performance of chosen model on test data
 % 1) plot surface
 zq_test = griddata(test_X(1,:),test_X(2,:),test_Y,xq,yq);
