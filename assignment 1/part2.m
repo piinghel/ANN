@@ -50,6 +50,7 @@ ylabel('X2');
 zlabel('Target (Tnew)')
 legend('Actual Surface','Actual Points','Location','NorthWest')
 hold off;
+saveas(gcf,'output/fig8.png');
 
 
 %% train different networks 
@@ -147,11 +148,11 @@ for b=1:B
 end;
 
 % percentile confidence intrvals
-bootstrap_ci_perc = prctile(cell2mat(boot_store),[5 95],1)
+bootstrap_ci_perc = prctile(cell2mat(boot_store),[2.5 97.5],1)
 
 % The'bias-corrected and accelerated' (BCa) confidence interval;
-pred_test = @(x,y) mean((sim(net_final,x')-y').^2);
-bootstrap_ci_bca = bootci(B,pred_test,test_X', test_Y')
+compute_mse = @(x,y) mean((sim(net_final,x')-y').^2);
+bootstrap_ci_bca = bootci(B,compute_mse,test_X', test_Y')
 
 hist(cell2mat(boot_store),50)
 xlabel("Mean Squared Error")
@@ -160,10 +161,13 @@ hold on
 ylim = get(gca,'YLim');
 h1=plot(bootstrap_ci_perc(1)*[1,1],ylim*1.05,'g-','LineWidth',2);
 plot(bootstrap_ci_perc(2)*[1,1],ylim*1.05,'g-','LineWidth',2);
-h2=plot(bootstrap_ci_bca(1)*[1,1],ylim*1.05,'y-','LineWidth',2);
-plot(bootstrap_ci_bca(2)*[1,1],ylim*1.05,'y-','LineWidth',2);
+h2=plot(bootstrap_ci_bca(1)*[1,1],ylim*1.05,'r-','LineWidth',2);
+plot(bootstrap_ci_bca(2)*[1,1],ylim*1.05,'r-','LineWidth',2);
 legend([h1,h2],{'Percentile','Bca'});
 hold off;
+% save figure
+saveas(gcf,'output/fig9.png');
+
 % visualize performance of chosen model on test data
 % 1) plot surface
 zq_test = griddata(test_X(1,:),test_X(2,:),test_Y,xq,yq);
@@ -177,7 +181,7 @@ ylabel('X2');
 zlabel('Target (Tnew)')
 legend('Actual Surface','Predicted Sample Points','Location','NorthWest')
 hold off;
-
+saveas(gcf,'output/fig10.png');
 
 
 

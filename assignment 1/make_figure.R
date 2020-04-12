@@ -115,6 +115,15 @@ df2 %>% dim()
 
 df2 %>% head()
 
+# find best parameters: trainbr, 50 hidden size, logsig of transig
+best_params <-
+  df2 %>% dplyr::group_by(repetition, hidden_size, transfer_func, train_algos) %>%
+  dplyr::summarise(mse_val_mean = mean(mse_val),
+                   mean_time = mean(time),
+                   mean_epoch = mean(nr_epochs))
+
+best_params %>% arrange(mse_val_mean)
+          
 # transfer_func
 make_barplot(
   data = df2,
