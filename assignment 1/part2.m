@@ -89,7 +89,7 @@ for hidden_size=hidden_sizes
                 data{counter, 2} = batch;
                 data{counter, 3} = hidden_size;               
                 data{counter, 4} = transfer_func;
-                data{counter, 5} = tr.epoch(end);
+                data{counter, 5} = tr.best_epoch;;
                 data{counter, 6} = tr.best_perf;
                 data{counter, 7} = tr.best_vperf;
                 data{counter, 8} = time;
@@ -106,7 +106,7 @@ for hidden_size=hidden_sizes
 end
 
 tbl = cell2table(data, 'VariableNames', {'train_algos', 'repetition', 'hidden_size', 'transfer_func',...
-                 'nr_epochs','mse_train', 'mse_val','time'});
+                 'best_epoch','mse_train', 'mse_val','time'});
 
 writetable(tbl, 'output/part2.xlsx');
 %tbl = readtable('output/part2.xlsx');             

@@ -59,9 +59,9 @@ for step=steps
                     data{counter,2} = batch; 
                     data{counter,3} = r_tr;
                     data{counter,4} = r_val;
-                    data{counter,5} = tr.best_perf; % training performance (mse)
+                    data{counter,5} = tr.best_perf;  % training performance (mse)
                     data{counter,6} = tr.best_vperf; % validation performance (mse)
-                    data{counter,7} = tr.epoch(end);
+                    data{counter,7} = tr.best_epoch;
                     data{counter,8} = time; 
                     data{counter,9} = size(x, 2);
                     data{counter,10} = sd;
@@ -69,9 +69,7 @@ for step=steps
                     counter = counter + 1;
                     % print every 10 iterations
                     if mod(counter,50)==1
-                         fprintf('%-10s\t%3i\t%2.3f\t%2.3f\t%2.3f\t%2.3f\t%4i\t%8.3f\t%2.3f\t%2.3f\t%3i\n',...
-                            char(train_algo),counter - 1, r_tr, r_val, tr.best_perf, tr.best_vperf,... 
-                            tr.epoch(end), time, size(x, 2), sd, hidden_size);
+                         fprintf('%2.0f\n',counter)
                     end                
                 end
             end
@@ -80,5 +78,6 @@ for step=steps
 end
 %%
 tbl = cell2table(data, 'VariableNames', {'train_algo','fold','r_tr','r_val','mse_tr',...
-                 'mse_val', 'nr_epoch', 'time', 'num_samples', 'sd', 'hidden_size'});
+                 'mse_val', 'best_epoch', 'time', 'num_samples', 'sd', 'hidden_size'});
 writetable(tbl, 'output/part1.xlsx');
+%tbl = readtable('output/part1.xlsx');
