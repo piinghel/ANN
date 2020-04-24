@@ -157,7 +157,7 @@ output_tbl = cell2table(output, 'VariableNames', {'batch','best_epoch','lag','hi
 % save output
 writetable(output_tbl, 'output/part2/mlp/part2_mlp.xlsx');
 % read in table
-%output_tbl = readtable('output/part2/mlp/part2_mlp.xlsx');
+output_tbl = readtable('output/part2/mlp/part2_mlp.xlsx');
 
 % group stats together and visualize             
 group_stats  = grpstats(output_tbl, {'lag','hidden_size'}, {@median});            
