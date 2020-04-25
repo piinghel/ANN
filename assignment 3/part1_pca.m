@@ -91,5 +91,5 @@ plot(rmse_q);
 hold on;
 plot(cumsum(out_eig))
 
-out_eig
+
 

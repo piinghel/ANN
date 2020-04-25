@@ -3,8 +3,8 @@ clear all
 close all
 nntraintool('close');
 nnet.guis.closeAllViews();
-clc
-echo on
+%clc
+%echo on
 % This example shows how to use Neural Network Toolbox(TM) to train a deep
 % neural network to classify images of digits.
 %
@@ -26,7 +26,7 @@ echo on
 % Copyright 2014-2015 The MathWorks, Inc.
 
 %press any key to go on
-pause;
+%pause;
 
 %% Data set
 % This example uses synthetic data throughout, for training and testing.
@@ -39,11 +39,11 @@ pause;
 % Load the training data into memory
 load('digittrain_dataset.mat');
 
-% Display some of the training images
-% for i = 1:20
-%     subplot(4,5,i);
-%     imshow(xTrainImages{i});
-% end
+%Display some of the training images
+for i = 1:20
+     subplot(4,5,i);
+     imshow(xTrainImages{i});
+end
 echo off
 clf
 for i = 1:20

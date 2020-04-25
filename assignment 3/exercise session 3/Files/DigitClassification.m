@@ -8,7 +8,6 @@ nnet.guis.closeAllViews();
 % this behavior, explicitly set the random number generator seed.
 rng('default')
 
-
 % Load the training data into memory
 load('digittrain_dataset.mat');
 
