@@ -42,6 +42,7 @@ url = 'http://www.vision.caltech.edu/Image_Datasets/Caltech101/101_ObjectCategor
 % Store the output in a temporary folder
 outputFolder = fullfile(tempdir, 'caltech101'); % define output folder
 
+
 %%
 % Note: Download time of the data depends on your internet connection. The
 % next set of commands use MATLAB to download the data and will block
@@ -146,7 +147,15 @@ convnet = helperImportMatConvNet(cnnMatFile)
 
 % View the CNN architecture
 convnet.Layers
-
+lgraph = layerGraph(convnet.Layers);
+figure
+plot(lgraph)
+camroll(-270)
+sizex = 40;
+sizey = 4;
+set(gcf, 'PaperPosition', [0 0 sizex sizey]);
+set(gcf, 'PaperSize', [sizex sizey]);
+saveas(gcf, 'output/part3_cnn/figure1', 'png');
 %%
 % The first layer defines the input dimensions. Each CNN has a different
 % input size requirements. The one used in this example requires image
@@ -215,9 +224,13 @@ w1 = imresize(w1,5);
 
 % Display a montage of network weights. There are 96 individual sets of
 % weights in the first layer.
-figure
 montage(w1)
-title('First convolutional layer weights')
+sizex = 8;
+sizey = 8;
+set(gcf, 'PaperPosition', [0 0 sizex sizey]);
+set(gcf, 'PaperSize', [sizex sizey]);
+saveas(gcf, 'output/part3_cnn/figure2', 'png');
+%title('First convolutional layer weights')
 
 % %%
 % % Notice how the first layer of the network has learned filters for
@@ -232,9 +245,9 @@ title('First convolutional layer weights')
 % % design choice, but typically starting with the layer right before the
 % % classification layer is a good place to start. In |convnet|, the this
 % % layer is named 'fc7'. Let's extract training features using that layer.
-% featureLayer = 'fc7';
-% trainingFeatures = activations(convnet, trainingSet, featureLayer, ...
-%     'MiniBatchSize', 32, 'OutputAs', 'columns');
+featureLayer = 'fc7';
+trainingFeatures = activations(convnet, trainingSet, featureLayer, ...
+     'MiniBatchSize', 32, 'OutputAs', 'columns');
 % %%
 % % Note that the activations are computed on the GPU and the 'MiniBatchSize'
 % % is set 32 to ensure that the CNN and image data fit into GPU memory.
@@ -251,13 +264,13 @@ title('First convolutional layer weights')
 % % vectors, which each have a length of 4096.
 % 
 % % Get training labels from the trainingSet
-% trainingLabels = trainingSet.Labels;
+trainingLabels = trainingSet.Labels;
 % 
 % % Train multiclass SVM classifier using a fast linear solver, and set
 % % 'ObservationsIn' to 'columns' to match the arrangement used for training
 % % features.
-% classifier = fitcecoc(trainingFeatures, trainingLabels, ...
-%     'Learners', 'Linear', 'Coding', 'onevsall', 'ObservationsIn', 'columns');
+classifier = fitcecoc(trainingFeatures, trainingLabels, ...
+     'Learners', 'Linear', 'Coding', 'onevsall', 'ObservationsIn', 'columns');
 % 
 % %% Evaluate Classifier
 % % Repeat the procedure used earlier to extract image features from
@@ -265,37 +278,40 @@ title('First convolutional layer weights')
 % % measure the accuracy of the trained classifier.
 % 
 % % Extract test features using the CNN
-% testFeatures = activations(convnet, testSet, featureLayer, 'MiniBatchSize',32);
-% 
+
+testFeatures = activations(convnet, testSet, featureLayer, ...
+    'MiniBatchSize',32, 'OutputAs', 'columns');
+
 % % Pass CNN image features to trained classifier
-% predictedLabels = predict(classifier, testFeatures);
+predictedLabels = predict(classifier, testFeatures');
 % 
 % % Get the known labels
-% testLabels = testSet.Labels;
+testLabels = testSet.Labels;
 % 
 % % Tabulate the results using a confusion matrix.
-% confMat = confusionmat(testLabels, predictedLabels);
+confMat = confusionmat(testLabels, predictedLabels);
 % 
 % % Convert confusion matrix into percentage form
-% confMat = bsxfun(@rdivide,confMat,sum(confMat,2))
+confMat = bsxfun(@rdivide,confMat,sum(confMat,2))
 % %%
 % 
 % % Display the mean accuracy
-% mean(diag(confMat))
+mean(diag(confMat))
 % 
 % %% Try the Newly Trained Classifier on Test Images
 % % You can now apply the newly trained classifier to categorize new images.
-% newImage = fullfile(rootFolder, 'airplanes', 'image_0690.jpg');
+newImage = fullfile(rootFolder, 'airplanes', 'image_0690.jpg');
 % 
 % % Pre-process the images as required for the CNN
-% img = readAndPreprocessImage(newImage);
+img = readAndPreprocessImage(newImage);
 % 
 % % Extract image features using the CNN
-% imageFeatures = activations(convnet, img, featureLayer);
+imageFeatures = activations(convnet, img, featureLayer, ...
+    'MiniBatchSize',32, 'OutputAs', 'columns');
 % %%
 % 
 % % Make a prediction using the classifier
-% label = predict(classifier, imageFeatures)
+label = predict(classifier, imageFeatures')
 % 
 % 
 % %% References

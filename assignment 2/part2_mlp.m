@@ -15,20 +15,20 @@ train_data = load('data/lasertrain.dat');
 val_data = load('data/laserpred.dat');
 
 % visualize data
-subplot(2,1,1)
+subplot(1,2,1)
 plot(train_data)
 xlabel("Discrete time index")
 ylabel("Amplitute")
 title("Training Set")
 
-subplot(2,1,2)
+subplot(1,2,2)
 plot(val_data)
 xlabel("Discrete time index")
 ylabel("Amplitute")
 title("Validation Set")
 
 sizex = 20;
-sizey = 20;
+sizey = 5;
 set(gcf, 'PaperPosition', [0 0 sizex sizey]);
 set(gcf, 'PaperSize', [sizex sizey]);
 saveas(gcf, 'output/part2/mlp/figure1.png');
@@ -66,8 +66,8 @@ val_stand = (val_data_trans - mu_train) / sd_train;
 % repeat 5 times for every parameter combination (results seem to fluctuate
 % quite a lot)
 
-nr_lags = [1,10, 20, 30, 40, 50, 60];
-hidden_sizes = [10, 20, 30, 40, 50, 60]; 
+nr_lags = [1, 10, 15, 20, 25, 30];
+hidden_sizes = [10, 15, 20, 25, 30]; 
 repeat_count = 5;
 output = cell(size(nr_lags, 2) * size(hidden_sizes, 2) * repeat_count, 7);
 batch = 0;         
@@ -91,7 +91,6 @@ for lag=nr_lags
     for hidden=hidden_sizes
           batch = batch + 1;
           for j=1:repeat_count
-                fprintf('%2.0f\n',counter)
                 % train network
                 net_grid_search = feedforwardnet(hidden_sizes, 'trainlm');
                 net_grid_search.trainParam.showWindow = false;
@@ -99,7 +98,7 @@ for lag=nr_lags
                 % this is to ensure we obtain the mse for the trainbr on
                 % the validation data (is disabled by default)
                 net_grid_search.trainParam.max_fail = 10; 
-                net_grid_search.trainParam.epochs=200;
+                net_grid_search.trainParam.epochs=150;
                 % indices for training
                 net_grid_search.divideParam.trainInd = 1:size(X_train,2);
                 % indices for validation
@@ -163,9 +162,9 @@ output_tbl = readtable('output/part2/mlp/part2_mlp.xlsx');
 group_stats  = grpstats(output_tbl, {'lag','hidden_size'}, {@median});            
 
 figure
-surf(hidden_sizes, nr_lags, reshape(group_stats.median_rmse_val,... 
-     length(nr_lags),length(hidden_sizes)));
-colorbar;
+surf(nr_lags, hidden_sizes, reshape(group_stats.median_rmse_val,... 
+     length(hidden_sizes),length(nr_lags)));
+%colorbar;
 xlabel('Number of Lags');
 ylabel('Size Hidden Layer');
 zlabel('RMSE');
@@ -204,7 +203,7 @@ net_train.divideFcn = 'divideind';
 % this is to ensure we obtain the mse for the trainbr on
 % the validation data (is disabled by default)
 net_train.trainParam.max_fail = 10; 
-net_train.trainParam.epochs=70;
+net_train.trainParam.epochs=50;
 % indices for training
 net_train.divideParam.trainInd = 1:size(X_train,2);
 % indices for validation
@@ -247,8 +246,9 @@ hold on
 plot(Y_hat_val_orig_unit,'.-')
 hold off
 legend(["Observed" "Forecast"])
+ylim([0 300])
 ylabel("Amplitute")
-title("Forecast")
+%title("Forecast")
 
 subplot(2,1,2)
 stem(Y_hat_val_orig_unit - val_data')
@@ -256,8 +256,8 @@ xlabel("Discrete time index")
 ylabel("Residuals")
 title("RMSE = " + rmse_val)  
 
-sizex = 20;
-sizey = 20;
+sizex = 10;
+sizey = 15;
 set(gcf, 'PaperPosition', [0 0 sizex sizey]);
 set(gcf, 'PaperSize', [sizex sizey]);
 saveas(gcf, 'output/part2/mlp/figure3.png');

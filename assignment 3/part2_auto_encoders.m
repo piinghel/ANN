@@ -1,5 +1,9 @@
 %% Setup
+clear
+clc
+close all
 rng('default')
+%%
 load data/digittrain_dataset;
 load data/digittest_dataset;
 
@@ -17,13 +21,18 @@ for i = 1:numel(xTestImages)
     xTest(:,i) = xTestImages{i}(:);
 end
 
+% sizes of the train and validation set
+size(xTrain)
+size(xTest)
+
 %% Tests 3 layers
 data3 = {};
-max_epochs = [100 4 40 60 ; 
-               25 1 10 15 ;
-              100 4 40 60];
-hiddensizes = [40 100 200 ;
-               20  50 100];
+max_epochs = [40 100 200 400; 
+              10  25  50 100;
+              40 100 200 400];
+          
+hiddensizes = [40 100 150 200 ;
+               20  50  75 100];
 repeat = 2;
 
 for hiddensize=hiddensizes
@@ -61,7 +70,7 @@ for hiddensize=hiddensizes
             y = deepnet(xTest);
             %figure;
             %plotconfusion(tTest,y);
-            classAcc=100*(1-confusion(tTest,y))
+            classAcc= 100*(1-confusion(tTest,y));
             %view(deepnet)
 
             data3{end+1, 1} = hiddensize(1);
@@ -83,18 +92,22 @@ tlb3 = cell2table(data3, 'VariableNames', {'hiddenSize1','hiddenSize2','Max_epoc
 % save output
 writetable(tlb3, 'output/part2_auto_encoders/3_layers.xlsx');
 % read in table
-%tlb3 = readtable('output/part2_auto_encoders/3_layers.xlsx');
+tlb3 = readtable('output/part2_auto_encoders/3_layers.xlsx');
 
 %% Tests 4 layers
 data4 = {};
-max_epochs = [100 4 40 60 ;
-               50 2 20 30 ;
-               25 1 10 15 ;
-              100 4 40 60];
-hiddensizes = [40 100 200 ;
-               30  75 150 ;
-               20  50 100];
+max_epochs = [ 40  100 200 400;
+               20  50  100 200;
+               10   25  50  100;
+               40  100 200 400];
+           
+hiddensizes = [40 100 150 200 ;
+               30  75 100 150 ;
+               20  50  75 100];
 repeat = 2;
+
+
+
 
 for hiddensize=hiddensizes
     for max_epoch=max_epochs
@@ -186,7 +199,7 @@ tlb_pattern1 = cell2table(pattern1_output, 'VariableNames', {'time','classAcc'})
 % save output
 writetable(tlb_pattern1, 'output/part2_auto_encoders/pattern1.xlsx');
 % read in table
-%tlb_pattern1 = readtable('output/part2_auto_encoders/pattern1.xlsx');
+tlb_pattern1 = readtable('output/part2_auto_encoders/pattern1.xlsx');
 
 %% Compare with normal neural network (2 hidden layers)
 pattern2_output = {};
@@ -209,4 +222,4 @@ tlb_pattern2 = cell2table(pattern2_output, 'VariableNames', {'time','classAcc'})
 % save output
 writetable(tlb_pattern2, 'output/part2_auto_encoders/pattern2.xlsx');
 % read in table
-%tlb_pattern2 = readtable('output/part2_auto_encoders/pattern2.xlsx');
+tlb_pattern2 = readtable('output/part2_auto_encoders/pattern2.xlsx');

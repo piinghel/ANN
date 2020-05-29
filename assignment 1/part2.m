@@ -1,6 +1,7 @@
 
 close all;
 clc;
+rng('default')
 %% read in data and build target
 load('Data/Data_Problem1_regression.mat');
 
@@ -44,13 +45,13 @@ figure
 mesh(xq,yq,zq_train);
 hold on
 plot3(train_X(1,:),train_X(2,:),train_Y,'.');
-title('Training Data');
+%title('Training Data');
 xlabel('X1');
 ylabel('X2');
 zlabel('Target (Tnew)')
 legend('Actual Surface','Actual Points','Location','NorthWest')
 hold off;
-saveas(gcf,'output/fig8.png');
+saveas(gcf,'output/figure8.png');
 
 
 %% train different networks 
@@ -109,10 +110,31 @@ tbl = cell2table(data, 'VariableNames', {'train_algos', 'repetition', 'hidden_si
                  'best_epoch','mse_train', 'mse_val','time'});
 
 writetable(tbl, 'output/part2.xlsx');
-%tbl = readtable('output/part2.xlsx');             
+tbl = readtable('output/part2.xlsx');             
 
-%% todo find best parameters
+%% train network on training set (measure perf. on validation set)
+% train final selected network (with chosen parameters) on train_validation data
+net_train=feedforwardnet(50,'trainbr'); %hiddenSizes 
+%(Row vector of one or more hidden layer sizes (default = 10)
+%Row vector of one or more hidden layer sizes (default = 10), Training function
 
+net_train.divideFcn = 'divideind';
+net_train.trainParam.max_fail = 20;
+net_train.divideParam.trainInd = train_idx;
+net_train.divideParam.valInd = val_idx;
+net_train.layers{1}.transferFcn = char('logsig');
+
+%training and simulation
+net_train.trainParam.epochs=1000;  % set the number of epochs for the training 
+net_train=train(net_train,X,Y);   % train the networks
+% predictions on test data
+pred_val=sim(net_train,val_X);  % simulate the networks with the input vector p
+mse_val = mean((pred_val - val_Y).^2);
+
+
+
+%% train network using best parameters on train_validation set
+rng('default')
 % train final selected network (with chosen parameters) on train_validation data
 net_final=feedforwardnet(50,'trainbr'); %hiddenSizes 
 %(Row vector of one or more hidden layer sizes (default = 10)
@@ -123,7 +145,7 @@ net_final.divideParam.trainInd = train_val_idx;
 net_final.layers{1}.transferFcn = char('logsig');
 
 %training and simulation
-net_final.trainParam.epochs=1000;  % set the number of epochs for the training 
+net_final.trainParam.epochs=179;  % set the number of epochs for the training 
 net_final=train(net_final,train_val_X,train_val_Y);   % train the networks
 % predictions on test data
 pred_test=sim(net_final,test_X);  % simulate the networks with the input vector p
@@ -156,17 +178,17 @@ bootstrap_ci_bca = bootci(B,compute_mse,test_X', test_Y')
 
 hist(cell2mat(boot_store),50)
 xlabel("Mean Squared Error")
-title('Samples re-drawn from a single sample')
+%title('Samples re-drawn from a single sample')
 hold on
 ylim = get(gca,'YLim');
-h1=plot(bootstrap_ci_perc(1)*[1,1],ylim*1.05,'g-','LineWidth',2);
-plot(bootstrap_ci_perc(2)*[1,1],ylim*1.05,'g-','LineWidth',2);
-h2=plot(bootstrap_ci_bca(1)*[1,1],ylim*1.05,'r-','LineWidth',2);
-plot(bootstrap_ci_bca(2)*[1,1],ylim*1.05,'r-','LineWidth',2);
-legend([h1,h2],{'Percentile','Bca'});
+%h1=plot(bootstrap_ci_perc(1)*[1,1],ylim*1.05,'r--','LineWidth',2);
+%plot(bootstrap_ci_perc(2)*[1,1],ylim*1.05,'r--','LineWidth',2);
+h2=plot(bootstrap_ci_bca(1)*[1,1],ylim,'r--','LineWidth',2);
+plot(bootstrap_ci_bca(2)*[1,1],ylim,'r--','LineWidth',2);
+legend([h2],{'95% CI Bca'});
 hold off;
 % save figure
-saveas(gcf,'output/fig9.png');
+saveas(gcf,'output/figure9.png');
 
 % visualize performance of chosen model on test data
 % 1) plot surface
@@ -175,13 +197,13 @@ figure
 mesh(xq,yq,zq_test);
 hold on
 plot3(test_X(1,:),test_X(2,:),pred_test,'.');
-title('Test Data');
+%title('Test Data');
 xlabel('X1');
 ylabel('X2');
 zlabel('Target (Tnew)')
 legend('Actual Surface','Predicted Sample Points','Location','NorthWest')
 hold off;
-saveas(gcf,'output/fig10.png');
+saveas(gcf,'output/figure10.png');
 
 
 

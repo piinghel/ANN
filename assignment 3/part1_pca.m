@@ -16,18 +16,29 @@ C = cov(threes);
 [V,D] = eig(C);
 
 eigenvalues = flipud(diag(D));
-eig_cumsum = cumsum(eigenvalues) / sum(eigenvalues);
-plot(1 - eig_cumsum);
+plot(eigenvalues)
 xlabel('q');
-ylabel('quality loss');
+ylabel('Eigenvalue');
 xlim([0 255]);
-ylim([0 1]);
- 
-sizex = 20;
+sizex = 10;
 sizey = 8;
 set(gcf, 'PaperPosition', [0 0 sizex sizey]);
 set(gcf, 'PaperSize', [sizex sizey]);
-saveas(gcf, 'output/part1_pca/figure1', 'pdf');
+saveas(gcf, 'output/part1_pca/figure1', 'png');
+
+
+eig_cumsum = cumsum(eigenvalues) / sum(eigenvalues);
+plot(1 - eig_cumsum);
+xlabel('q');
+ylabel('Quality loss');
+xlim([0 255]);
+ylim([0 1]);
+ 
+sizex = 10;
+sizey = 8;
+set(gcf, 'PaperPosition', [0 0 sizex sizey]);
+set(gcf, 'PaperSize', [sizex sizey]);
+saveas(gcf, 'output/part1_pca/figure2', 'png');
 
 
 %% compress data to 1,2,3,4 PC and visualize reconstruction of the images
@@ -45,9 +56,10 @@ set(gca, 'YScale', 'log')
 ylabel("Variance Exlained (log scale)")
 xlabel("Number of Principal Components");
 
-% reconstruct digits using only the 1,2,3,4 first components
-image_id = 5;
-q = [1, 2, 3, 4];
+% reconstruct digits using only the 1,2,3,4,first components, and all (256)
+% compenents
+image_id = 6;
+q = [1, 2, 3, 4, 256];
 colormap('gray');
 for i = 1:size(q,2)
     subplot(1,size(q,2)+1,i);
@@ -61,35 +73,50 @@ end
 subplot(1,size(q,2)+1,size(q,2)+1);
 colormap('gray');
 imagesc(reshape(threes(image_id,:),16,16),[0,1])
-title("Original");
+title("original");
 set(gca, 'visible', 'off')
 set(findall(gca, 'type', 'text'), 'visible', 'on')
-saveas(gcf, 'output/part1_pca/figure2', 'pdf');
 
-%%
+sizex = 16;
+sizey = 5;
+set(gcf, 'PaperPosition', [0 0 sizex sizey]);
+set(gcf, 'PaperSize', [sizex sizey]);
+saveas(gcf, 'output/part1_pca/figure3.png');
+
+%% 
+% Use the Matlab function cumsum to create a vector whose i-th element is the sum of all but the i largest eigenvalues for
+% i = 1 : 256. Compare the first 50 elements of this vector to the vector of reconstruction errors calculated previously. What
+% do you notice? 
+
 q = [1:50];
 rmse_q = [1:size(q,2)];
 for i=q
     threes_hat = (score(:,1:i) * coeff(:,1:i)') .* sd + avg;
-    rmse_q(i) = sqrt(mean(mean((threes-threes_hat).^2)));
+    rmse_q(i) = mean(mean((threes-threes_hat).^2));
 end
 
-plot(rmse_q);
-ylabel("RMSE")
-xlabel("Number of Principal Components");
-
-%%
-C = cov(threes);
-[V,D] = eig(C);
-D_rotated = rot90(D,2)';
-out_eig = [1:50];
-for i=1:50
-    out_eig(i) = D_rotated(i,i);
+out = [1:256];
+for i=out
+    out(i) = sum(eigenvalues(i+1:end));
 end
 
-plot(rmse_q);
-hold on;
-plot(cumsum(out_eig))
+figure;
+yyaxis left
+plot(rmse_q)
+ylabel("MSE")
+hold on
+yyaxis right
+plot(out(1:50))
+ylabel("Sum of all but the ith largest eigenvalues")
+xlabel("Number of Principal Components (PC) / Eigenvalues");
+
+sizex = 10;
+sizey = 8;
+set(gcf, 'PaperPosition', [0 0 sizex sizey]);
+set(gcf, 'PaperSize', [sizex sizey]);
+saveas(gcf, 'output/part1_pca/figure4.png');
+
+
 
 
 

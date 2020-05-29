@@ -15,20 +15,20 @@ train_data = load('data/lasertrain.dat');
 val_data = load('data/laserpred.dat');
 
 % visualize data
-subplot(2,1,1)
+subplot(1,2,1)
 plot(train_data)
 xlabel("Discrete time index")
 ylabel("Amplitute")
 title("Training Set")
 
-subplot(2,1,2)
+subplot(1,2,2)
 plot(val_data)
 xlabel("Discrete time index")
 ylabel("Amplitute")
 title("Validation Set")
 
 sizex = 20;
-sizey = 20;
+sizey = 5;
 set(gcf, 'PaperPosition', [0 0 sizex sizey]);
 set(gcf, 'PaperSize', [sizex sizey]);
 saveas(gcf, 'output/part2/lstm/figure1.png');
@@ -156,15 +156,18 @@ output_tbl = cell2table(output, 'VariableNames', {'batch','lag','hidden_size','m
 % save output
 writetable(output_tbl, 'output/part2/lstm/part2_lstm.xlsx');
 % read in table
-%output_tbl = readtable('output/part2/lstm/part2_lstm.xlsx');
+output_tbl = readtable('output/part2/lstm/part2_lstm.xlsx');
 
 % group stats together and visualize             
 group_stats  = grpstats(output_tbl, {'lag','hidden_size'}, {@median});            
 
+surf(nr_lags, hidden_sizes, reshape(group_stats.median_rmse_val,... 
+     length(hidden_sizes),length(nr_lags)));
+
 figure
 surf(nr_lags, hidden_sizes, reshape(group_stats.median_rmse_val,... 
-     length(nr_lags),length(hidden_sizes))');
-colorbar;
+     length(hidden_sizes),length(nr_lags)));
+%colorbar;
 xlabel('Number of Lags');
 ylabel('Size Hidden Layer');
 zlabel('RMSE');
@@ -184,7 +187,7 @@ saveas(gcf, 'output/part2/lstm/figure2.png');
 % ---------------------------------------------------------
 
 % create X and Y matrix for train/validation and all_train
-lags = 20;
+lags = 70;
 % train
 X_train = getTimeSeriesTrainData(train_stand,lags);
 Y_train = train_stand(lags+1:end)';
@@ -196,7 +199,7 @@ Y_val = val_stand';
 
 numFeatures = lags;
 numResponses = 1;
-numHiddenUnits = 40;
+numHiddenUnits = 50;
 
 layers = [ ...
     sequenceInputLayer(numFeatures)
@@ -206,7 +209,7 @@ layers = [ ...
 
 
 options = trainingOptions('adam', ...
-    'MaxEpochs',200, ...
+    'MaxEpochs',100, ...
     'ValidationData',{X_val,Y_val}, ...
     'ValidationFrequency',5, ...
     'GradientThreshold',1, ...
@@ -247,19 +250,17 @@ Y_hat_val_orig_unit = sd_train*Y_hat_val + mu_train;
 mse_val = mean((Y_hat_val_orig_unit-val_data').^2)
 rmse_val = sqrt(mean((Y_hat_val_orig_unit-val_data').^2))
 
-Y_hat_val_orig_unit = sd_train*Y_hat_val + mu_train; 
-mse_val = mean((Y_hat_val_orig_unit-val_data').^2)
-rmse_val = sqrt(mean((Y_hat_val_orig_unit-val_data').^2))
-
 figure
 subplot(2,1,1)
 plot(val_data)
+ylim([0 300]);
 hold on
 plot(Y_hat_val_orig_unit,'.-')
 hold off
 legend(["Observed" "Forecast"])
 ylabel("Amplitute")
-title("Forecast")
+%xlabel("Discrete time index")
+%title("Forecast")
 
 subplot(2,1,2)
 stem(Y_hat_val_orig_unit - val_data')
@@ -267,8 +268,8 @@ xlabel("Discrete time index")
 ylabel("Residuals")
 title("RMSE = " + rmse_val)             
              
-sizex = 20;
-sizey = 20;
+sizex = 10;
+sizey = 15;
 set(gcf, 'PaperPosition', [0 0 sizex sizey]);
 set(gcf, 'PaperSize', [sizex sizey]);
 saveas(gcf, 'output/part2/lstm/figure3.png');

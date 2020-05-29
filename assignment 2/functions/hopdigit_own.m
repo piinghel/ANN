@@ -1,7 +1,7 @@
 function nums = hopdigit_own(noiselevel,num_iter)
 
 
-load digits; clear size
+load data/digits; clear size
 [N, dim]=size(X);
 maxx=max(max(X));
 

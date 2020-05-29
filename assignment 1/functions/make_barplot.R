@@ -17,18 +17,20 @@
 
 
 
-make_barplot <- function(data = NULL,
-                         x = "train_algo",
-                         central_measure = stats::median,
-                         var_list = list("time", "epochs", "rmse"),
-                         x_lab_list = list("", "", ""),
-                         y_lab_list = list("Time (s)", "Epoch", "RMSE"),
-                         trans_list = list("pseudo_log", "pseudo_log", "pseudo_log"),
-                         fill = "std_noise",
-                         title_legend_list = list("Added noise", NULL, NULL),
-                         THEME = theme_gray(),
-                         PALETTE = "Dark2",
-                         LEGEND_POSITION = "top") {
+make_barplot <- function(
+   data = NULL,
+   x = "train_algo",
+   central_measure = stats::median,
+   var_list = list("time", "epochs", "rmse"),
+   x_lab_list = list("", "", ""),
+   y_lab_list = list("Time (s)", "Epoch", "RMSE"),
+   trans_list = list("pseudo_log", "pseudo_log", "pseudo_log"),
+   fill = "std_noise",
+   title_legend_list = list("Added noise", NULL, NULL),
+   THEME = theme_gray(),
+   PALETTE = "Dark2",
+   LEGEND_POSITION = "top") {
+  
   for (j in 1:length(var_list)) {
     # legend or no legend
     if (is.null(title_legend_list[[j]])) {

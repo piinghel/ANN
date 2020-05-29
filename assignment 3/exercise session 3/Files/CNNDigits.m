@@ -166,7 +166,7 @@ layers = [imageInputLayer([28 28 1])
 % descent with momentum. Set the maximum number of epochs at 15 (an epoch
 % is a full training cycle on the whole training data), and start the
 % training with an initial learning rate of 0.0001.
-options = trainingOptions('sgdm','MaxEpochs',15, ...
+options = trainingOptions('sgdm','MaxEpochs',50, ...
 	'InitialLearnRate',0.0001,'OutputFcn',@plotTrainingAccuracy);  
 
 %% Train the Network Using Training Data
